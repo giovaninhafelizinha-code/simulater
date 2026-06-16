@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexo — Pesquisa</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f0f2f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 24px 12px;
+  }
+
+  /* ── Moldura do celular ── */
+  .phone {
+    width: 340px;
+    background: #111;
+    border-radius: 48px;
+    padding: 10px;
+    box-shadow: 0 0 0 1px #333, 0 20px 60px rgba(0,0,0,0.3);
+  }
+
+  .phone-inner {
+    background: #fff;
+    border-radius: 40px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 640px;
+    position: relative;
+  }
+
+  .notch {
+    background: #111;
+    height: 30px;
+    border-radius: 0 0 18px 18px;
+    width: 110px;
+    margin: 0 auto;
+    z-index: 10;
+    position: relative;
+  }
+
+  /* ── Status bar ── */
+  .sbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 18px 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #111;
+  }
+
+  .sbar-icons { display: flex; gap: 4px; align-items: center; }
+
+  /* ── Header do app ── */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border-bottom: 0.5px solid #e1e8ed;
+  }
+
+  .app-logo {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a8cd8;
+    letter-spacing: -1px;
+  }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #536471;
+    font-size: 20px;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-btn:hover { background: #f0f2f5; }
+
+  /* ── Barra de progresso ── */
+  .pbar { height: 3px; background: #e1e8ed; }
+  .pfill { height: 100%; background: #1a8cd8; transition: width 0.4s ease; }
+  .slabel {
+    text-align: center;
+    font-size: 11px;
+    color: #536471;
+    padding: 4px 0 2px;
+  }
+
+  /* ── Feed ── */
+  .feed { flex: 1; overflow-y: auto; overflow-x: hidden; }
+
+  .post-card {
+    padding: 14px 16px;
+    border-bottom: 0.5px solid #e1e8ed;
+    display: flex;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+  }
+
+  .post-right { flex: 1; min-width: 0; }
+
+  .post-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+  }
+
+  .post-name { font-size: 14px; font-weight: 700; color: #0f1419; }
+  .post-handle, .post-dot, .post-time { font-size: 13px; color: #536471; }
+
+  .post-text {
+    font-size: 14px;
+    color: #0f1419;
+    line-height: 1.55;
+    margin-bottom: 12px;
+    word-break: break-word;
+  }
+
+  .post-actions { display: flex; gap: 22px; }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: #536471;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 2px 0;
+    transition: color 0.15s;
+  }
+
+  .action-btn:hover { color: #1a8cd8; }
+  .action-btn svg { width: 17px; height: 17px; }
+
+  /* ── Área de comentário ── */
+  .comment-area {
+    border-top: 0.5px solid #e1e8ed;
+    padding: 10px 12px 12px;
+    background: #fff;
+  }
+
+  .comment-row { display: flex; align-items: flex-end; gap: 8px; }
+
+  .c-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #1a8cd8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .c-input {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    border-radius: 22px;
+    padding: 8px 14px;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+    line-height: 1.4;
+    min-height: 38px;
+    max-height: 90px;
+    color: #0f1419;
+    background: #f7f9f9;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+
+  .c-input:focus { border-color: #1a8cd8; background: #fff; }
+  .c-input::placeholder { color: #8899a6; }
+
+  .char-count { font-size: 11px; color: #8899a6; text-align: right; margin-top: 4px; padding-right: 2px; }
+
+  .publish-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+  .pub-btn {
+    background: #1a8cd8;
+    color: #fff;
+    border: none;
+    border-radius: 22px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+  }
+
+  .pub-btn:hover { background: #1677b3; }
+  .pub-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Tela de ID ── */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    border-radius: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 28px;
+    z-index: 20;
+  }
+
+  .overlay-icon { font-size: 48px; }
+
+  .overlay-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f1419;
+    text-align: center;
+  }
+
+  .overlay-sub {
+    font-size: 13px;
+    color: #536471;
+    text-align: center;
+    margin-top: -8px;
+  }
+
+  .id-input {
+    border: 2px solid #1a8cd8;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    width: 160px;
+    color: #0f1419;
+    outline: none;
+    letter-spacing: 3px;
+    font-family: inherit;
+  }
+
+  .id-input:focus { box-shadow: 0 0 0 3px rgba(26,140,216,0.15); }
+
+  .start-btn {
+    background: #1a8cd8;
+    color: #fff;
+    border: none;
+    border-radius: 22px;
+    padding: 12px 36px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .start-btn:hover { background: #1677b3; }
+  .start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Tela de resultados ── */
+  .results-screen {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .results-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f1419;
+    text-align: center;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .result-item {
+    background: #f7f9f9;
+    border-radius: 14px;
+    padding: 11px 13px;
+    margin-bottom: 10px;
+  }
+
+  .result-label {
+    font-size: 10px;
+    color: #536471;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 4px;
+  }
+
+  .result-post {
+    font-size: 12px;
+    color: #536471;
+    margin-bottom: 6px;
+    font-style: italic;
+    padding-bottom: 6px;
+    border-bottom: 0.5px solid #e1e8ed;
+  }
+
+  .result-reply { font-size: 13px; color: #0f1419; line-height: 1.4; }
+
+  .status-msg {
+    font-size: 12px;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 10px;
+    margin-top: 10px;
+    font-weight: 500;
+  }
+
+  .msg-ok { background: #d4edda; color: #155724; }
+  .msg-err { background: #f8d7da; color: #721c24; }
+  .msg-sending { background: #d1ecf1; color: #0c5460; }
+
+  .reset-btn {
+    width: 100%;
+    margin-top: 12px;
+    background: #1a8cd8;
+    color: #fff;
+    border: none;
+    border-radius: 22px;
+    padding: 11px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .reset-btn:hover { background: #1677b3; }
+
+  /* ── SVG icons inline ── */
+  .heart-icon { transition: fill 0.15s, stroke 0.15s; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="phone-inner" id="phoneInner">
+
+    <!-- Status bar -->
+    <div class="sbar">
+      <span id="clockDisplay">9:41</span>
+      <div class="sbar-icons">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20" stroke-width="3"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="16" height="10" rx="2"/><path d="M20 10v4a2 2 0 0 0 0-4z"/></svg>
+      </div>
+    </div>
+
+    <!-- App header -->
+    <div class="app-header">
+      <button class="icon-btn" aria-label="Início">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      </button>
+      <div class="app-logo">Nexo</div>
+      <button class="icon-btn" aria-label="Notificações">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+    </div>
+
+    <!-- Progresso -->
+    <div class="pbar"><div class="pfill" id="pFill" style="width:0%"></div></div>
+    <div class="slabel" id="sLabel">Carregando...</div>
+
+    <!-- Feed -->
+    <div class="feed" id="feedArea"></div>
+
+    <!-- Comentário -->
+    <div class="comment-area" id="commentArea" style="display:none">
+      <div class="comment-row">
+        <div class="c-avatar">V</div>
+        <textarea class="c-input" id="cInput" placeholder="Escreva um comentário..." rows="1" maxlength="280"></textarea>
+      </div>
+      <div class="char-count"><span id="cCount">0</span>/280</div>
+      <div class="publish-row">
+        <button class="pub-btn" id="pubBtn" disabled>Publicar</button>
+      </div>
+    </div>
+
+    <!-- Tela de ID (overlay inicial) -->
+    <div class="overlay" id="idScreen">
+      <div class="overlay-icon">🔬</div>
+      <div class="overlay-title">Identificação do participante</div>
+      <div class="overlay-sub">Digite o código antes de começar</div>
+      <input class="id-input" id="pidInput" type="text" placeholder="P01" maxlength="10" autocomplete="off" />
+      <button class="start-btn" id="startBtn" disabled>Iniciar</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbw_N7aJZ_5YSdUKlowthg-9ZZst1Pn-cyKw9q8CP65NYlhgcWNy-2r4wNmq1AGo_SdD/exec";
+
+const posts = [
+  {
+    id: 1,
+    name: "Carla Mendes",
+    handle: "@carlamendes",
+    time: "2h",
+    initials: "CM",
+    color: "#9747FF",
+    text: "[TEXTO DO POST 1] Exemplo: Acabei de ver uma situação incrível no metrô hoje. Uma pessoa deixou cair todos os seus documentos e ninguém parou para ajudar. O que vocês teriam feito no lugar das pessoas ao redor?",
+    likes: 47, replies: 12, reposts: 8
+  },
+  {
+    id: 2,
+    name: "Bruno Tavares",
+    handle: "@brunotav",
+    time: "5h",
+    initials: "BT",
+    color: "#1a8cd8",
+    text: "[TEXTO DO POST 2] Exemplo: Pesquisas mostram que pessoas tendem a ajudar mais quando estão sozinhas do que em grupo. Na sua opinião, por que isso acontece? Já vivenciou algo parecido?",
+    likes: 132, replies: 38, reposts: 21
+  },
+  {
+    id: 3,
+    name: "Ana Lima",
+    handle: "@analima",
+    time: "1d",
+    initials: "AL",
+    color: "#E0522F",
+    text: "[TEXTO DO POST 3] Exemplo: Hoje percebi que fico muito mais ansioso(a) quando tenho muitas escolhas do que quando tenho poucas. Menos opções = mais tranquilidade. Isso acontece com vocês também?",
+    likes: 89, replies: 24, reposts: 15
+  }
+];
+
+let step = 0, pid = "", answers = [], likedSet = new Set();
+
+// Relógio real
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,"0");
+  const m = now.getMinutes().toString().padStart(2,"0");
+  document.getElementById("clockDisplay").textContent = h + ":" + m;
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// ID screen
+const pidInput = document.getElementById("pidInput");
+const startBtn = document.getElementById("startBtn");
+pidInput.addEventListener("input", () => {
+  startBtn.disabled = pidInput.value.trim().length === 0;
+});
+pidInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !startBtn.disabled) startBtn.click();
+});
+startBtn.addEventListener("click", () => {
+  pid = pidInput.value.trim().toUpperCase();
+  document.getElementById("idScreen").style.display = "none";
+  document.getElementById("commentArea").style.display = "block";
+  renderPost(0);
+  updateProgress();
+});
+
+function svgHeart(filled) {
+  if (filled) {
+    return `<svg width="17" height="17" viewBox="0 0 24 24" fill="#f91880" stroke="#f91880" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  }
+  return `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+}
+
+function renderPost(idx) {
+  const p = posts[idx];
+  const lk = likedSet.has(p.id);
+  document.getElementById("feedArea").innerHTML = `
+    <div class="post-card">
+      <div class="avatar" style="background:${p.color}">${p.initials}</div>
+      <div class="post-right">
+        <div class="post-header">
+          <span class="post-name">${p.name}</span>
+          <span class="post-handle">${p.handle}</span>
+          <span class="post-dot">·</span>
+          <span class="post-time">${p.time}</span>
+        </div>
+        <p class="post-text">${p.text}</p>
+        <div class="post-actions">
+          <button class="action-btn" onclick="toggleLike(${p.id},this)" aria-label="Curtir">
+            <span id="hicon${p.id}">${svgHeart(lk)}</span>
+            <span id="lcount${p.id}">${lk ? p.likes+1 : p.likes}</span>
+          </button>
+          <button class="action-btn" aria-label="Comentários">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>${p.replies}</span>
+          </button>
+          <button class="action-btn" aria-label="Repostar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span>${p.reposts}</span>
+          </button>
+          <button class="action-btn" aria-label="Compartilhar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleLike(id, btn) {
+  const p = posts.find(x => x.id === id);
+  const icon = document.getElementById("hicon" + id);
+  const count = document.getElementById("lcount" + id);
+  if (likedSet.has(id)) {
+    likedSet.delete(id);
+    icon.innerHTML = svgHeart(false);
+    count.textContent = p.likes;
+  } else {
+    likedSet.add(id);
+    icon.innerHTML = svgHeart(true);
+    count.textContent = p.likes + 1;
+  }
+}
+
+function updateProgress() {
+  const pct = ((step + 1) / posts.length) * 100;
+  document.getElementById("pFill").style.width = pct + "%";
+  document.getElementById("sLabel").textContent = "Post " + (step+1) + " de " + posts.length;
+}
+
+async function sendToSheets(payload) {
+  try {
+    await fetch(SHEETS_URL, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      mode: "no-cors"
+    });
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+async function showResults() {
+  document.getElementById("pFill").style.width = "100%";
+  document.getElementById("sLabel").textContent = "Concluído";
+  document.getElementById("feedArea").innerHTML = "";
+  document.getElementById("commentArea").style.display = "none";
+
+  const rDiv = document.createElement("div");
+  rDiv.className = "results-screen";
+
+  let html = `<div class="results-title">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a8cd8" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    Respostas de ${pid}
+  </div>`;
+
+  answers.forEach((ans, i) => {
+    html += `<div class="result-item">
+      <div class="result-label">Post ${i+1} — ${posts[i].name}</div>
+      <div class="result-post">${posts[i].text.substring(0, 90)}...</div>
+      <div class="result-reply">${ans}</div>
+    </div>`;
+  });
+
+  html += `<div class="status-msg msg-sending" id="sendStatus">Enviando para a planilha...</div>`;
+  html += `<button class="reset-btn" onclick="resetApp()">Próximo participante</button>`;
+
+  rDiv.innerHTML = html;
+  document.getElementById("phoneInner").appendChild(rDiv);
+
+  const ok = await sendToSheets({ id: pid, r1: answers[0], r2: answers[1], r3: answers[2] });
+  const st = document.getElementById("sendStatus");
+  if (ok) {
+    st.className = "status-msg msg-ok";
+    st.textContent = "✓ Salvo na planilha com sucesso";
+  } else {
+    st.className = "status-msg msg-err";
+    st.textContent = "⚠ Erro no envio — verifique a conexão";
+  }
+}
+
+function resetApp() {
+  step = 0; pid = ""; answers = []; likedSet.clear();
+
+  const rScreen = document.querySelector(".results-screen");
+  if (rScreen) rScreen.remove();
+
+  document.getElementById("feedArea").innerHTML = "";
+  document.getElementById("commentArea").style.display = "none";
+  document.getElementById("pFill").style.width = "0%";
+  document.getElementById("sLabel").textContent = "Carregando...";
+
+  const cInput = document.getElementById("cInput");
+  cInput.value = ""; cInput.style.height = "auto";
+  document.getElementById("cCount").textContent = "0";
+  document.getElementById("pubBtn").disabled = true;
+
+  const idScreen = document.getElementById("idScreen");
+  idScreen.style.display = "flex";
+  document.getElementById("pidInput").value = "";
+  document.getElementById("startBtn").disabled = true;
+}
+
+// Comentário
+const cInput = document.getElementById("cInput");
+const pubBtn = document.getElementById("pubBtn");
+const cCount = document.getElementById("cCount");
+
+cInput.addEventListener("input", () => {
+  const len = cInput.value.length;
+  cCount.textContent = len;
+  pubBtn.disabled = len === 0;
+  cInput.style.height = "auto";
+  cInput.style.height = Math.min(cInput.scrollHeight, 90) + "px";
+});
+
+pubBtn.addEventListener("click", () => {
+  const v = cInput.value.trim();
+  if (!v) return;
+  answers.push(v);
+  cInput.value = ""; cCount.textContent = "0";
+  cInput.style.height = "auto"; pubBtn.disabled = true;
+  likedSet.clear(); step++;
+  if (step < posts.length) { renderPost(step); updateProgress(); }
+  else showResults();
+});
+</script>
+</body>
+</html>
