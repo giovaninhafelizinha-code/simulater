@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexo — Pesquisa</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f0f2f5;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 24px 12px;
+}
+.phone {
+  width: 355px; background: #1a1a1a; border-radius: 50px; padding: 10px;
+  box-shadow: 0 0 0 1px #2a2a2a, 0 0 0 2px #111, inset 0 0 0 1px #333, 0 30px 80px rgba(0,0,0,0.25);
+  position: relative;
+}
+.phone::before {
+  content: ""; position: absolute; left: -3px; top: 100px;
+  width: 3px; height: 32px; background: #2a2a2a; border-radius: 3px 0 0 3px;
+  box-shadow: 0 44px 0 #2a2a2a;
+}
+.phone::after {
+  content: ""; position: absolute; right: -3px; top: 130px;
+  width: 3px; height: 56px; background: #2a2a2a; border-radius: 0 3px 3px 0;
+}
+.phone-inner {
+  background: #fff; border-radius: 42px; overflow: hidden;
+  display: flex; flex-direction: column; height: 660px; position: relative;
+}
+.dynamic-island {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 34px; background: #000; border-radius: 20px; z-index: 30;
+}
+.sbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 52px 20px 4px; font-size: 12px; font-weight: 600; color: #0f1419; flex-shrink: 0;
+}
+.sbar-icons { display: flex; align-items: center; gap: 5px; }
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 16px 8px; border-bottom: 0.5px solid #eff3f4; flex-shrink: 0;
+}
+.app-logo { display: flex; align-items: center; justify-content: center; }
+.hbtn {
+  background: none; border: none; cursor: pointer; color: #536471;
+  padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.hbtn:hover { background: #f7f9f9; color: #0f1419; }
+.nav-tabs { display: flex; border-bottom: 0.5px solid #eff3f4; flex-shrink: 0; }
+.nav-tab {
+  flex: 1; padding: 12px 0; text-align: center; font-size: 13px;
+  font-weight: 500; color: #536471; cursor: default; position: relative;
+}
+.nav-tab.active { color: #0f1419; font-weight: 700; }
+.nav-tab.active::after {
+  content: ""; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 56px; height: 3px; background: #1d9bf0; border-radius: 3px 3px 0 0;
+}
+.pbar { height: 2px; background: #eff3f4; flex-shrink: 0; }
+.pfill { height: 100%; background: #1d9bf0; transition: width 0.4s ease; }
+.slabel { text-align: center; font-size: 11px; color: #536471; padding: 3px 0 2px; flex-shrink: 0; }
+.feed { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.feed::-webkit-scrollbar { width: 0; }
+.post-card {
+  padding: 12px 16px; border-bottom: 0.5px solid #eff3f4;
+  display: flex; gap: 10px; transition: background 0.1s;
+}
+.post-card:hover { background: #f7f9f9; }
+.avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px; color: #fff;
+}
+.post-right { flex: 1; min-width: 0; }
+.post-header { display: flex; align-items: center; gap: 4px; margin-bottom: 1px; overflow: hidden; }
+.post-name { font-size: 14px; font-weight: 700; color: #0f1419; white-space: nowrap; }
+.post-handle, .post-dot, .post-time { font-size: 13px; color: #536471; white-space: nowrap; }
+.post-more { margin-left: auto; color: #536471; background: none; border: none; cursor: pointer; padding: 0 2px; font-size: 16px; }
+.post-text { font-size: 15px; color: #0f1419; line-height: 1.55; margin-bottom: 10px; word-break: break-word; margin-top: 2px; }
+.post-actions { display: flex; justify-content: space-between; max-width: 280px; }
+.abtn {
+  display: flex; align-items: center; gap: 4px; font-size: 12px; color: #536471;
+  cursor: pointer; background: none; border: none; padding: 4px 6px; border-radius: 50px;
+  transition: color 0.15s, background 0.15s;
+}
+.abtn:hover { background: rgba(29,155,240,0.1); color: #1d9bf0; }
+.abtn.like:hover { background: rgba(249,24,128,0.1); color: #f91880; }
+.abtn.repost:hover { background: rgba(0,186,124,0.1); color: #00ba7c; }
+.abtn.liked { color: #f91880; }
+.abtn.reposted { color: #00ba7c; }
+.comment-area { border-top: 0.5px solid #eff3f4; padding: 10px 14px 12px; background: #fff; flex-shrink: 0; }
+.reply-label { font-size: 12px; color: #536471; margin-bottom: 8px; }
+.reply-label span { color: #1d9bf0; }
+.crow { display: flex; align-items: flex-start; gap: 10px; }
+.cav {
+  width: 36px; height: 36px; border-radius: 50%; background: #1d9bf0; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 14px; font-weight: 700; margin-top: 2px;
+}
+.cinput-wrap { flex: 1; }
+.cinput {
+  width: 100%; background: transparent; border: none; font-size: 16px;
+  color: #0f1419; outline: none; line-height: 1.5; min-height: 40px; max-height: 120px;
+  font-family: inherit; caret-color: #1d9bf0; overflow-y: auto; word-break: break-word;
+}
+.cinput:empty::before { content: attr(data-placeholder); color: #536471; pointer-events: none; }
+.cinput b, .cinput strong { font-weight: 700; }
+.cinput i, .cinput em { font-style: italic; }
+.action-bar {
+  display: flex; align-items: center; margin-top: 8px; padding-top: 8px;
+  border-top: 0.5px solid #eff3f4;
+}
+.media-btns { display: flex; gap: 2px; flex: 1; align-items: center; }
+.mbtn {
+  background: none; border: none; cursor: pointer; color: #1d9bf0;
+  padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.mbtn:hover { background: rgba(29,155,240,0.1); }
+.fmt-btn { font-weight: 700; }
+.fmt-sep { width: 1px; height: 18px; background: #eff3f4; margin: 0 4px; }
+.char-ring { width: 20px; height: 20px; margin-right: 12px; }
+.pub-btn {
+  background: #1d9bf0; color: #fff; border: none; border-radius: 22px;
+  padding: 7px 16px; font-size: 14px; font-weight: 700; cursor: pointer; line-height: 1;
+}
+.pub-btn:hover { background: #1a8cd8; }
+.pub-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.overlay {
+  position: absolute; inset: 0; background: #fff; border-radius: 42px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 16px; padding: 32px; z-index: 20;
+}
+.ov-logo { display: flex; align-items: center; justify-content: center; }
+.ov-pid {
+  font-size: 52px; font-weight: 900; color: #1d9bf0; letter-spacing: 2px;
+  font-family: inherit;
+}
+.ov-title { font-size: 20px; font-weight: 800; color: #0f1419; text-align: center; }
+.ov-sub { font-size: 14px; color: #536471; text-align: center; line-height: 1.5; }
+.start-btn {
+  background: #1d9bf0; color: #fff; border: none; border-radius: 22px;
+  padding: 12px 0; width: 100%; font-size: 15px; font-weight: 700;
+  cursor: pointer; max-width: 240px;
+}
+.start-btn:hover { background: #1a8cd8; }
+.results-screen { padding: 16px; overflow-y: auto; flex: 1; }
+.results-screen::-webkit-scrollbar { width: 0; }
+.rt { font-size: 20px; font-weight: 800; color: #0f1419; margin-bottom: 4px; }
+.rsub { font-size: 14px; color: #536471; margin-bottom: 16px; }
+.ritem { background: #f7f9f9; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; border: 0.5px solid #eff3f4; }
+.rlabel { font-size: 11px; color: #536471; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+.rpost { font-size: 12px; color: #536471; margin-bottom: 6px; font-style: italic; padding-bottom: 6px; border-bottom: 0.5px solid #eff3f4; }
+.rreply { font-size: 13px; color: #0f1419; line-height: 1.4; }
+.smsg { font-size: 13px; text-align: center; padding: 10px; border-radius: 10px; margin-top: 8px; font-weight: 500; }
+.s-ok { background: #d4edda; color: #155724; }
+.s-err { background: #f8d7da; color: #721c24; }
+.s-sending { background: #d1ecf1; color: #0c5460; }
+.reset-btn {
+  width: 100%; margin-top: 14px; background: #1d9bf0; color: #fff;
+  border: none; border-radius: 22px; padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.reset-btn:hover { background: #1a8cd8; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="phone-inner" id="phoneInner">
+    <div class="dynamic-island"></div>
+    <div class="sbar">
+      <span id="clockDisplay">9:41</span>
+      <div class="sbar-icons">
+        <svg width="15" height="11" viewBox="0 0 15 11" fill="#0f1419"><rect x="0" y="4" width="3" height="7" rx="1"/><rect x="4" y="2.5" width="3" height="8.5" rx="1"/><rect x="8" y="1" width="3" height="10" rx="1"/><rect x="12" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#0f1419" stroke-width="1.5"><path d="M1 4.5C4.5 1.5 11.5 1.5 15 4.5"/><path d="M3 7C5.5 4.5 10.5 4.5 13 7"/><path d="M5.5 9.5C7 8 9 8 10.5 9.5"/><circle cx="8" cy="11" r="1" fill="#0f1419" stroke="none"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#0f1419" stroke-opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#0f1419"/><path d="M23 4.5v3a1.5 1.5 0 0 0 0-3z" fill="#0f1419" opacity=".4"/></svg>
+      </div>
+    </div>
+    <div class="app-header">
+      <button class="hbtn" aria-label="Perfil">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </button>
+      <div class="app-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 100 80" fill="#536471">
+          <path d="M72 8C78 6 85 8 88 14C90 18 89 23 86 26L82 29C85 32 87 37 86 42C85 48 81 53 75 56C70 58 64 58 58 57L55 65C57 66 60 67 60 69C60 71 58 72 56 72L44 72C42 72 40 71 40 69C40 67 42 66 44 65L42 57C36 55 28 51 24 44C20 37 21 28 26 22C31 16 39 14 47 15C52 16 57 19 60 23C63 18 67 10 72 8Z M78 16C80 16 82 18 82 20C82 22 80 23 78 22C76 22 75 20 76 18C76 17 77 16 78 16Z"/>
+        </svg>
+      </div>
+      <button class="hbtn" aria-label="Novo post">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+    </div>
+    <div class="nav-tabs">
+      <div class="nav-tab active">Para você</div>
+      <div class="nav-tab">Seguindo</div>
+    </div>
+    <div class="pbar"><div class="pfill" id="pFill" style="width:0%"></div></div>
+    <div class="slabel" id="sLabel">Carregando...</div>
+    <div class="feed" id="feedArea"></div>
+    <div class="comment-area" id="commentArea" style="display:none">
+      <div class="reply-label">Respondendo a <span id="replyHandle">@usuario</span></div>
+      <div class="crow">
+        <div class="cav">V</div>
+        <div class="cinput-wrap">
+          <div class="cinput" id="cInput" contenteditable="true" data-placeholder="Poste sua resposta" role="textbox" aria-multiline="true"></div>
+        </div>
+      </div>
+      <div class="action-bar">
+        <div class="media-btns">
+          <button class="mbtn fmt-btn" onmousedown="event.preventDefault()" onclick="applyFmt('bold')" aria-label="Negrito">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+          </button>
+          <button class="mbtn fmt-btn" onmousedown="event.preventDefault()" onclick="applyFmt('italic')" aria-label="Itálico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+          </button>
+          <div class="fmt-sep"></div>
+          <button class="mbtn" aria-label="Imagem">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+          </button>
+          <button class="mbtn" aria-label="Emoji">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg>
+          </button>
+        </div>
+        <svg class="char-ring" viewBox="0 0 20 20">
+          <circle cx="10" cy="10" r="8" fill="none" stroke="#eff3f4" stroke-width="2"/>
+          <circle cx="10" cy="10" r="8" fill="none" stroke="#1d9bf0" stroke-width="2"
+            stroke-dasharray="50.27" stroke-dashoffset="50.27"
+            stroke-linecap="round" transform="rotate(-90 10 10)" id="charArc"/>
+        </svg>
+        <button class="pub-btn" id="pubBtn" disabled>Responder</button>
+      </div>
+    </div>
+
+    <!-- Overlay de início -->
+    <div class="overlay" id="idScreen">
+      <div class="ov-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 100 80" fill="#1d9bf0">
+          <path d="M72 8C78 6 85 8 88 14C90 18 89 23 86 26L82 29C85 32 87 37 86 42C85 48 81 53 75 56C70 58 64 58 58 57L55 65C57 66 60 67 60 69C60 71 58 72 56 72L44 72C42 72 40 71 40 69C40 67 42 66 44 65L42 57C36 55 28 51 24 44C20 37 21 28 26 22C31 16 39 14 47 15C52 16 57 19 60 23C63 18 67 10 72 8Z M78 16C80 16 82 18 82 20C82 22 80 23 78 22C76 22 75 20 76 18C76 17 77 16 78 16Z"/>
+        </svg>
+      </div>
+      <div class="ov-pid" id="ovPid">P01</div>
+      <div class="ov-title">Bem-vindo(a)</div>
+      <div class="ov-sub">Quando estiver pronto(a), clique em Iniciar</div>
+      <button class="start-btn" id="startBtn">Iniciar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbw_N7aJZ_5YSdUKlowthg-9ZZst1Pn-cyKw9q8CP65NYlhgcWNy-2r4wNmq1AGo_SdD/exec";
+
+const posts = [
+  { id:1, name:"Carol Dias", handle:"@caroldias", time:"1h", initials:"CD", color:"#6366f1",
+    text:"acabei de entregar o TCC depois de 6 meses. não foi perfeito, mas foi o máximo que consegui fazer. aliviada demais 😮‍💨 agora só quero dormir por 3 dias",
+    likes:847, replies:62, reposts:91, views:"24K" },
+  { id:2, name:"Thiago Neves", handle:"@thiago_nv", time:"3h", initials:"TN", color:"#10b981",
+    text:"meu grupo de amigos sumiu depois que eu comecei a namorar e agora que terminei ninguém apareceu. boa lição 👍 amizade de verdade é rara mesmo",
+    likes:2341, replies:189, reposts:412, views:"87K" },
+  { id:3, name:"Isabela Mota", handle:"@isamota_", time:"5h", initials:"IM", color:"#f59e0b",
+    text:"reprovei na prova que estudei mais nesse semestre. fiz exercícios, reli o conteúdo, tirei dúvida com o professor. não entendo mais nada. pra que estudar se não adianta nada",
+    likes:5892, replies:743, reposts:1204, views:"231K" },
+  { id:4, name:"Lucas Freire", handle:"@lfreire22", time:"8h", initials:"LF", color:"#ef4444",
+    text:"aquele amigo que some quando você precisa e aparece quando precisa de favor. tipo relógio quebrado, certo duas vezes por dia. cansado de ser o único que faz esforço nas amizades",
+    likes:3107, replies:298, reposts:876, views:"142K" },
+  { id:5, name:"Beatriz Cunha", handle:"@biacunha", time:"2h", initials:"BC", color:"#8b5cf6",
+    text:"uma mulher foi demitida hoje na empresa onde faço estágio. o motivo real? ficou grávida. o motivo oficial? \"reestruturação\". todo mundo sabe, ninguém faz nada. que país é esse",
+    likes:18432, replies:2341, reposts:6789, views:"812K" },
+  { id:6, name:"Rafael Souza", handle:"@rafaelsouza_r", time:"4h", initials:"RS", color:"#ec4899",
+    text:"minha orientadora disse hoje que meu projeto \'não tem condições de ser defendido esse semestre\'. dois anos de trabalho. saí da reunião sem conseguir falar nada. fui chorar no banheiro da faculdade como se tivesse 15 anos",
+    likes:9214, replies:1087, reposts:2341, views:"445K" }
+];
+
+// ID automático — busca do localStorage e incrementa
+function getCurrentPid() {
+  let n = parseInt(localStorage.getItem("nexo_pid") || "0");
+  return "P" + String(n + 1).padStart(2, "0");
+}
+function savePid(pid) {
+  const n = parseInt(pid.replace("P",""));
+  localStorage.setItem("nexo_pid", n);
+}
+
+let step = 0, pid = "", answers = [], likedSet = new Set(), repostedSet = new Set();
+const circumference = 50.27;
+
+// Mostrar PID na tela de início
+function refreshOverlay() {
+  pid = getCurrentPid();
+  document.getElementById("ovPid").textContent = pid;
+}
+refreshOverlay();
+
+document.getElementById("startBtn").addEventListener("click", () => {
+  document.getElementById("idScreen").style.display = "none";
+  document.getElementById("commentArea").style.display = "block";
+  renderPost(0); updateProgress();
+});
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById("clockDisplay").textContent =
+    now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
+}
+updateClock(); setInterval(updateClock, 15000);
+
+function fmtNum(n) {
+  return n >= 1000 ? (n/1000).toFixed(1).replace(".0","")+"K" : n;
+}
+
+function renderPost(idx) {
+  const p = posts[idx];
+  const lk = likedSet.has(p.id), rp = repostedSet.has(p.id);
+  document.getElementById("replyHandle").textContent = p.handle;
+  document.getElementById("feedArea").innerHTML = `
+    <div class="post-card">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="avatar" style="background:${p.color}">${p.initials}</div>
+        <div style="width:2px;flex:1;background:#cfd9de;margin-top:4px;min-height:16px;border-radius:1px"></div>
+      </div>
+      <div class="post-right">
+        <div class="post-header">
+          <span class="post-name">${p.name}</span>
+          <span class="post-handle">${p.handle}</span>
+          <span class="post-dot">·</span>
+          <span class="post-time">${p.time}</span>
+          <button class="post-more">···</button>
+        </div>
+        <p class="post-text">${p.text}</p>
+        <div class="post-actions">
+          <button class="abtn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${fmtNum(p.replies)}</span></button>
+          <button class="abtn repost ${rp?"reposted":""}" onclick="toggleRepost(${p.id},this)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span id="rcount${p.id}">${fmtNum(rp?p.reposts+1:p.reposts)}</span></button>
+          <button class="abtn like ${lk?"liked":""}" onclick="toggleLike(${p.id},this)"><svg width="17" height="17" viewBox="0 0 24 24" fill="${lk?"#f91880":"none"}" stroke="${lk?"#f91880":"currentColor"}" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span id="lcount${p.id}">${fmtNum(lk?p.likes+1:p.likes)}</span></button>
+          <button class="abtn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>${p.views}</span></button>
+          <button class="abtn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleLike(id, btn) {
+  const p = posts.find(x=>x.id===id);
+  const count = document.getElementById("lcount"+id);
+  const svg = btn.querySelector("svg");
+  if (likedSet.has(id)) { likedSet.delete(id); btn.classList.remove("liked"); svg.setAttribute("fill","none"); svg.setAttribute("stroke","currentColor"); count.textContent=fmtNum(p.likes); }
+  else { likedSet.add(id); btn.classList.add("liked"); svg.setAttribute("fill","#f91880"); svg.setAttribute("stroke","#f91880"); count.textContent=fmtNum(p.likes+1); }
+}
+function toggleRepost(id, btn) {
+  const p = posts.find(x=>x.id===id);
+  const count = document.getElementById("rcount"+id);
+  if (repostedSet.has(id)) { repostedSet.delete(id); btn.classList.remove("reposted"); count.textContent=fmtNum(p.reposts); }
+  else { repostedSet.add(id); btn.classList.add("reposted"); count.textContent=fmtNum(p.reposts+1); }
+}
+
+function updateProgress() {
+  document.getElementById("pFill").style.width = ((step+1)/posts.length*100)+"%";
+  document.getElementById("sLabel").textContent = "Post "+(step+1)+" de "+posts.length;
+}
+
+// Editor rich text
+const cInput = document.getElementById("cInput");
+const pubBtn = document.getElementById("pubBtn");
+const charArc = document.getElementById("charArc");
+
+function applyFmt(type) {
+  cInput.focus();
+  document.execCommand(type === "bold" ? "bold" : "italic", false, null);
+  syncInput();
+}
+
+function htmlToMarkdown(html) {
+  return html
+    .replace(/<b>(.*?)<\/b>/gi, "**$1**")
+    .replace(/<strong>(.*?)<\/strong>/gi, "**$1**")
+    .replace(/<i>(.*?)<\/i>/gi, "_$1_")
+    .replace(/<em>(.*?)<\/em>/gi, "_$1_")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")
+    .trim();
+}
+
+function syncInput() {
+  const len = cInput.innerText.trim().length;
+  pubBtn.disabled = len === 0;
+  const pct = Math.min(len/280, 1);
+  charArc.style.strokeDashoffset = circumference-(pct*circumference);
+  charArc.style.stroke = pct>0.9?"#f4212e":pct>0.7?"#ffd400":"#1d9bf0";
+}
+
+cInput.addEventListener("input", syncInput);
+cInput.addEventListener("keydown", e => {
+  if (cInput.innerText.length >= 280 && e.key !== "Backspace" && e.key !== "Delete" && !e.ctrlKey && !e.metaKey) e.preventDefault();
+});
+
+pubBtn.addEventListener("click", () => {
+  const markdown = htmlToMarkdown(cInput.innerHTML);
+  if (!markdown) return;
+  answers.push(markdown);
+  cInput.innerHTML = ""; charArc.style.strokeDashoffset = circumference; pubBtn.disabled = true;
+  likedSet.clear(); repostedSet.clear();
+  step++;
+  if (step < posts.length) { renderPost(step); updateProgress(); }
+  else showResults();
+});
+
+async function sendToSheets(payload) {
+  try { await fetch(SHEETS_URL, { method:"POST", body:JSON.stringify(payload), mode:"no-cors" }); return true; }
+  catch(e) { return false; }
+}
+
+async function showResults() {
+  document.getElementById("pFill").style.width="100%";
+  document.getElementById("sLabel").textContent="Sessão concluída";
+  document.getElementById("feedArea").innerHTML="";
+  document.getElementById("commentArea").style.display="none";
+  savePid(pid);
+  const rDiv = document.createElement("div");
+  rDiv.className="results-screen";
+  let html = `<div class="rt">Sessão concluída</div><div class="rsub">Participante: ${pid}</div>`;
+  answers.forEach((ans,i) => {
+    html += `<div class="ritem"><div class="rlabel">Post ${i+1} · ${posts[i].handle}</div><div class="rpost">${posts[i].text.substring(0,80)}...</div><div class="rreply">${ans}</div></div>`;
+  });
+  html += `<div class="smsg s-sending" id="sendStatus">Enviando dados...</div>`;
+  html += `<button class="reset-btn" onclick="resetApp()">Próximo participante</button>`;
+  rDiv.innerHTML = html;
+  document.getElementById("phoneInner").appendChild(rDiv);
+  const ok = await sendToSheets({id:pid,r1:answers[0],r2:answers[1],r3:answers[2],r4:answers[3],r5:answers[4],r6:answers[5]});
+  const st = document.getElementById("sendStatus");
+  st.className = ok?"smsg s-ok":"smsg s-err";
+  st.textContent = ok?"✓ Dados salvos na planilha":"⚠ Erro no envio — verifique a conexão";
+}
+
+function resetApp() {
+  step=0; answers=[]; likedSet.clear(); repostedSet.clear();
+  const rs = document.querySelector(".results-screen"); if(rs) rs.remove();
+  document.getElementById("feedArea").innerHTML="";
+  document.getElementById("commentArea").style.display="none";
+  document.getElementById("pFill").style.width="0%";
+  document.getElementById("sLabel").textContent="Carregando...";
+  cInput.innerHTML=""; charArc.style.strokeDashoffset=circumference; pubBtn.disabled=true;
+  refreshOverlay();
+  document.getElementById("idScreen").style.display="flex";
+}
+</script>
+</body>
+</html>
