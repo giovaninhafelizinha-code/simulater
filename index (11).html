@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexo</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #f5f5f5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 24px 12px;
+}
+
+.phone {
+  width: 355px;
+  background: #1a1a1a;
+  border-radius: 50px;
+  padding: 10px;
+  box-shadow:
+    0 0 0 1px #2a2a2a,
+    0 0 0 2px #111,
+    inset 0 0 0 1px #333,
+    0 30px 80px rgba(0,0,0,0.25);
+  position: relative;
+}
+.phone::before {
+  content: "";
+  position: absolute; left: -3px; top: 100px;
+  width: 3px; height: 32px;
+  background: #2a2a2a; border-radius: 3px 0 0 3px;
+  box-shadow: 0 44px 0 #2a2a2a;
+}
+.phone::after {
+  content: "";
+  position: absolute; right: -3px; top: 130px;
+  width: 3px; height: 56px;
+  background: #2a2a2a; border-radius: 0 3px 3px 0;
+}
+
+.phone-inner {
+  background: #fff;
+  border-radius: 42px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 660px;
+  position: relative;
+}
+
+.dynamic-island {
+  position: absolute; top: 10px; left: 50%;
+  transform: translateX(-50%);
+  width: 120px; height: 34px;
+  background: #fff; border-radius: 20px; z-index: 30;
+}
+
+.sbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 52px 20px 4px;
+  font-size: 12px; font-weight: 600; color: #0f1419;
+  flex-shrink: 0;
+}
+.sbar-icons { display: flex; align-items: center; gap: 5px; }
+
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 16px 8px;
+  border-bottom: 0.5px solid #eff3f4;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+}
+.app-logo { display: flex; align-items: center; justify-content: center; }
+.app-logo img { filter: brightness(10); }
+
+.hbtn {
+  background: none; border: none; cursor: pointer;
+  color: #536471; padding: 6px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.hbtn:hover { background: #f7f9f9; color: #0f1419; }
+
+.nav-tabs { display: flex; border-bottom: 0.5px solid #eff3f4; flex-shrink: 0; }
+.nav-tab {
+  flex: 1; padding: 12px 0; text-align: center;
+  font-size: 13px; font-weight: 500; color: #536471;
+  cursor: default; position: relative;
+}
+.nav-tab.active { color: #0f1419; font-weight: 700; }
+.nav-tab.active::after {
+  content: ""; position: absolute; bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 56px; height: 3px; background: #1d9bf0;
+  border-radius: 3px 3px 0 0;
+}
+
+.pbar { height: 2px; background: #eff3f4; flex-shrink: 0; }
+.pfill { height: 100%; background: #1d9bf0; transition: width 0.4s ease; }
+.slabel { text-align: center; font-size: 11px; color: #536471; padding: 3px 0 2px; flex-shrink: 0; }
+
+.feed { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.feed::-webkit-scrollbar { width: 0; }
+
+.post-card {
+  padding: 12px 16px; border-bottom: 0.5px solid #eff3f4;
+  display: flex; gap: 10px; transition: background 0.1s;
+}
+.post-card:hover { background: #f7f9f9; }
+
+.avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px; color: #fff;
+}
+
+.post-right { flex: 1; min-width: 0; }
+.post-header { display: flex; align-items: center; gap: 4px; margin-bottom: 1px; flex-wrap: nowrap; overflow: hidden; }
+.post-name { font-size: 14px; font-weight: 700; color: #0f1419; white-space: nowrap; }
+.post-handle, .post-dot, .post-time { font-size: 13px; color: #536471; white-space: nowrap; }
+.post-more { margin-left: auto; color: #536471; background: none; border: none; cursor: pointer; padding: 0 2px; font-size: 16px; line-height: 1; }
+
+.post-text { font-size: 15px; color: #0f1419; line-height: 1.55; margin-bottom: 10px; word-break: break-word; margin-top: 2px; }
+
+.post-actions { display: flex; justify-content: space-between; max-width: 280px; }
+.abtn {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; color: #536471;
+  cursor: pointer; background: none; border: none;
+  padding: 4px 6px; border-radius: 50px;
+  transition: color 0.15s, background 0.15s;
+}
+.abtn:hover { background: rgba(29,155,240,0.1); color: #1d9bf0; }
+.abtn.like:hover { background: rgba(249,24,128,0.1); color: #f91880; }
+.abtn.repost:hover { background: rgba(0,186,124,0.1); color: #00ba7c; }
+.abtn.liked { color: #f91880; }
+.abtn.reposted { color: #00ba7c; }
+
+.comment-area {
+  border-top: 0.5px solid #eff3f4;
+  padding: 10px 14px 12px; background: #fff; flex-shrink: 0;
+}
+.reply-label { font-size: 12px; color: #536471; margin-bottom: 8px; }
+.reply-label span { color: #1d9bf0; }
+.crow { display: flex; align-items: flex-start; gap: 10px; }
+.cav {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #1d9bf0; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 14px; font-weight: 700; margin-top: 2px;
+}
+.cinput-wrap { flex: 1; }
+.cinput {
+  width: 100%; background: transparent; border: none;
+  font-size: 18px; color: #0f1419; resize: none; outline: none;
+  line-height: 1.4; min-height: 40px; max-height: 100px;
+  font-family: inherit; caret-color: #1d9bf0;
+}
+.cinput::placeholder { color: #536471; font-size: 18px; }
+
+.action-bar {
+  display: flex; align-items: center;
+  margin-top: 8px; padding-top: 8px;
+  border-top: 0.5px solid #eff3f4;
+}
+.media-btns { display: flex; gap: 2px; flex: 1; }
+.mbtn {
+  background: none; border: none; cursor: pointer;
+  color: #1d9bf0; padding: 6px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.mbtn:hover { background: rgba(29,155,240,0.1); }
+.fmt-btn.active { background: rgba(29,155,240,0.15); color: #1d9bf0; }
+
+.char-ring { width: 20px; height: 20px; margin-right: 12px; }
+
+.pub-btn {
+  background: #1d9bf0; color: #fff; border: none;
+  border-radius: 22px; padding: 7px 16px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: background 0.15s, opacity 0.15s; line-height: 1;
+}
+.pub-btn:hover { background: #1a8cd8; }
+.pub-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* overlay */
+.overlay {
+  position: absolute; inset: 0; background: #fff; border-radius: 42px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 18px; padding: 32px; z-index: 20;
+}
+.ov-logo { display: flex; align-items: center; justify-content: center; }
+.ov-logo img { filter: brightness(10); }
+.ov-title { font-size: 22px; font-weight: 800; color: #0f1419; text-align: center; }
+.ov-sub { font-size: 14px; color: #536471; text-align: center; line-height: 1.5; }
+.id-input {
+  border: 1.5px solid #2f3336; border-radius: 6px;
+  padding: 12px 16px; font-size: 20px; font-weight: 700;
+  text-align: center; width: 160px; color: #0f1419;
+  background: #16181c; outline: none; letter-spacing: 3px; font-family: inherit;
+}
+.id-input:focus { border-color: #1d9bf0; }
+.start-btn {
+  background: #e7e9ea; color: #000; border: none;
+  border-radius: 22px; padding: 12px 0; width: 100%;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: background 0.15s; max-width: 240px;
+}
+.start-btn:hover { background: #d0d3d6; }
+.start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* results */
+.results-screen { padding: 16px; overflow-y: auto; flex: 1; }
+.results-screen::-webkit-scrollbar { width: 0; }
+.rt { font-size: 20px; font-weight: 800; color: #0f1419; margin-bottom: 4px; }
+.rsub { font-size: 14px; color: #536471; margin-bottom: 16px; }
+.ritem { background: #16181c; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; border: 0.5px solid #eff3f4; }
+.rlabel { font-size: 11px; color: #536471; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+.rpost { font-size: 12px; color: #536471; margin-bottom: 6px; font-style: italic; padding-bottom: 6px; border-bottom: 0.5px solid #eff3f4; }
+.rreply { font-size: 14px; color: #0f1419; line-height: 1.4; }
+.smsg { font-size: 13px; text-align: center; padding: 10px; border-radius: 10px; margin-top: 8px; font-weight: 500; }
+.s-ok { background: #0d2d1a; color: #00ba7c; border: 0.5px solid #00ba7c44; }
+.s-err { background: #2d0d0d; color: #f4212e; border: 0.5px solid #f4212e44; }
+.s-sending { background: #0d1d2d; color: #1d9bf0; border: 0.5px solid #1d9bf044; }
+.reset-btn {
+  width: 100%; margin-top: 14px; background: #1d9bf0; color: #fff;
+  border: none; border-radius: 22px; padding: 12px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.reset-btn:hover { background: #1a8cd8; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="phone-inner" id="phoneInner">
+    <div class="dynamic-island"></div>
+
+    <div class="sbar">
+      <span id="clockDisplay">9:41</span>
+      <div class="sbar-icons">
+        <svg width="15" height="11" viewBox="0 0 15 11" fill="#0f1419"><rect x="0" y="4" width="3" height="7" rx="1"/><rect x="4" y="2.5" width="3" height="8.5" rx="1"/><rect x="8" y="1" width="3" height="10" rx="1"/><rect x="12" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#0f1419" stroke-width="1.5"><path d="M1 4.5C4.5 1.5 11.5 1.5 15 4.5"/><path d="M3 7C5.5 4.5 10.5 4.5 13 7"/><path d="M5.5 9.5C7 8 9 8 10.5 9.5"/><circle cx="8" cy="11" r="1" fill="#0f1419" stroke="none"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#0f1419" stroke-opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#0f1419"/><path d="M23 4.5v3a1.5 1.5 0 0 0 0-3z" fill="#0f1419" opacity=".4"/></svg>
+      </div>
+    </div>
+
+    <div class="app-header">
+      <button class="hbtn" aria-label="Perfil">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </button>
+      <div class="app-logo"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 100 100">
+<path fill="#536471" d="M97,13c-0.6-0.9-1.7-1.3-2.7-1L75,18c-3.5-5-9.2-8-15.5-8c-7.7,0-14.3,4.6-17.4,11.3L38,23
+  c-0.5,0.1-0.9,0.4-1.2,0.8L25,38H14c-1.1,0-2,0.6-2.4,1.6L6,53c-0.4,0.9-0.2,2,0.5,2.7l7,7C12.1,64,10,66.3,10,69
+  c0,3.3,2.7,6,6,6h1.4L14,81c-0.3,1,0,2.1,0.8,2.8C15.4,84.6,16.2,85,17,85c0.4,0,0.8-0.1,1.2-0.3L30,79.2
+  C33.2,83.4,38.3,86,44,86c7.5,0,14-4.5,17-11h1c17.1,0,31-13.9,31-31c0-4.3-0.9-8.5-2.5-12.3L97,16
+  C97.8,15,97.6,13.9,97,13z M16,69c0-1.1,0.9-2,2-2h2.6l3.5,3.5C23.4,71.8,22,73.3,22,75h-4C16.9,75,16,74.1,16,69z
+  M19.3,79l2-5.7L24,76l-3.3,4.7L19.3,79z M44,80c-6.6,0-12-5.4-12-12c0-0.6,0-1.1,0.1-1.7L47,51.2V66c0,1.7,1.3,3,3,3
+  s3-1.3,3-3V46c0-0.3,0-0.5-0.1-0.8L60,39.7V56c0,1.7,1.3,3,3,3s3-1.3,3-3V33.5c1.3-0.3,2.7-0.5,4-0.5c3.3,0,6.4,0.8,9.1,2.3
+  L62,50.8V44c0-1.7-1.3-3-3-3s-3,1.3-3,3v13.5l-8,7.3V56c0-1.7-1.3-3-3-3s-3,1.3-3,3v15.5l-2.3,2.1C39.1,72.4,38,70.3,38,68
+  c0-1.7-1.3-3-3-3s-3,1.3-3,3c0,6.6,5.4,12,12,12V80z M79.6,62.5L79.6,62.5C76.8,65.9,72.6,68,68,68h-1.4
+  C65.5,62.4,61,58,55.5,57l18-16.4C75.9,43.5,78,50.5,78,57C78,58.9,77.8,60.8,77.3,62.5H79.6z M70,26c0,2.2-1.8,4-4,4
+  s-4-1.8-4-4s1.8-4,4-4S70,23.8,70,26z"/>
+</svg></div>
+      <button class="hbtn" aria-label="Novo post">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+    </div>
+
+    <div class="nav-tabs">
+      <div class="nav-tab active">Para você</div>
+      <div class="nav-tab">Seguindo</div>
+    </div>
+
+    <div class="pbar"><div class="pfill" id="pFill" style="width:0%"></div></div>
+    <div class="slabel" id="sLabel">Carregando...</div>
+
+    <div class="feed" id="feedArea"></div>
+
+    <div class="comment-area" id="commentArea" style="display:none">
+      <div class="reply-label">Respondendo a <span id="replyHandle">@usuario</span></div>
+      <div class="crow">
+        <div class="cav">V</div>
+        <div class="cinput-wrap">
+          <div class="cinput" id="cInput" contenteditable="true" data-placeholder="Poste sua resposta" role="textbox" aria-multiline="true" aria-label="Campo de comentário"></div>
+        </div>
+      </div>
+      <div class="action-bar">
+        <div class="media-btns">
+          <button class="mbtn fmt-btn" onclick="applyFmt('bold')" onmousedown="event.preventDefault()" aria-label="Negrito" title="Negrito **texto**">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+          </button>
+          <button class="mbtn fmt-btn" onclick="applyFmt('italic')" onmousedown="event.preventDefault()" aria-label="Itálico" title="Itálico _texto_">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+          </button>
+          <div style="width:1px;height:18px;background:#eff3f4;margin:0 6px;flex-shrink:0"></div>
+          <button class="mbtn" aria-label="Imagem">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+          </button>
+          <button class="mbtn" aria-label="GIF">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M7 12h2m0 0v2m0-2V10"/></svg>
+          </button>
+          <button class="mbtn" aria-label="Emoji">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/></svg>
+          </button>
+        </div>
+        <svg class="char-ring" id="charRing" viewBox="0 0 20 20">
+          <circle cx="10" cy="10" r="8" fill="none" stroke="#eff3f4" stroke-width="2"/>
+          <circle cx="10" cy="10" r="8" fill="none" stroke="#1d9bf0" stroke-width="2"
+            stroke-dasharray="50.27" stroke-dashoffset="50.27"
+            stroke-linecap="round" transform="rotate(-90 10 10)" id="charArc"/>
+        </svg>
+        <button class="pub-btn" id="pubBtn" disabled>Responder</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="idScreen">
+      <div class="ov-logo"><svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 100 100">
+<path fill="#1d9bf0" d="M97,13c-0.6-0.9-1.7-1.3-2.7-1L75,18c-3.5-5-9.2-8-15.5-8c-7.7,0-14.3,4.6-17.4,11.3L38,23
+  c-0.5,0.1-0.9,0.4-1.2,0.8L25,38H14c-1.1,0-2,0.6-2.4,1.6L6,53c-0.4,0.9-0.2,2,0.5,2.7l7,7C12.1,64,10,66.3,10,69
+  c0,3.3,2.7,6,6,6h1.4L14,81c-0.3,1,0,2.1,0.8,2.8C15.4,84.6,16.2,85,17,85c0.4,0,0.8-0.1,1.2-0.3L30,79.2
+  C33.2,83.4,38.3,86,44,86c7.5,0,14-4.5,17-11h1c17.1,0,31-13.9,31-31c0-4.3-0.9-8.5-2.5-12.3L97,16
+  C97.8,15,97.6,13.9,97,13z M16,69c0-1.1,0.9-2,2-2h2.6l3.5,3.5C23.4,71.8,22,73.3,22,75h-4C16.9,75,16,74.1,16,69z
+  M19.3,79l2-5.7L24,76l-3.3,4.7L19.3,79z M44,80c-6.6,0-12-5.4-12-12c0-0.6,0-1.1,0.1-1.7L47,51.2V66c0,1.7,1.3,3,3,3
+  s3-1.3,3-3V46c0-0.3,0-0.5-0.1-0.8L60,39.7V56c0,1.7,1.3,3,3,3s3-1.3,3-3V33.5c1.3-0.3,2.7-0.5,4-0.5c3.3,0,6.4,0.8,9.1,2.3
+  L62,50.8V44c0-1.7-1.3-3-3-3s-3,1.3-3,3v13.5l-8,7.3V56c0-1.7-1.3-3-3-3s-3,1.3-3,3v15.5l-2.3,2.1C39.1,72.4,38,70.3,38,68
+  c0-1.7-1.3-3-3-3s-3,1.3-3,3c0,6.6,5.4,12,12,12V80z M79.6,62.5L79.6,62.5C76.8,65.9,72.6,68,68,68h-1.4
+  C65.5,62.4,61,58,55.5,57l18-16.4C75.9,43.5,78,50.5,78,57C78,58.9,77.8,60.8,77.3,62.5H79.6z M70,26c0,2.2-1.8,4-4,4
+  s-4-1.8-4-4s1.8-4,4-4S70,23.8,70,26z"/>
+</svg></div>
+      <div class="ov-title">Bem-vindo(a)</div>
+      <div class="ov-sub">Digite seu código de participante<br>para iniciar a sessão</div>
+      <input class="id-input" id="pidInput" type="text" placeholder="P01" maxlength="10" autocomplete="off"/>
+      <button class="start-btn" id="startBtn" disabled>Entrar</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbw_N7aJZ_5YSdUKlowthg-9ZZst1Pn-cyKw9q8CP65NYlhgcWNy-2r4wNmq1AGo_SdD/exec";
+
+const posts = [
+  {
+    id: 1, level: 1,
+    name: "Carol Dias", handle: "@caroldias", time: "1h",
+    initials: "CD", color: "#6366f1",
+    text: "acabei de entregar o TCC depois de 6 meses. não foi perfeito, mas foi o máximo que consegui fazer. aliviada demais 😮‍💨 agora só quero dormir por 3 dias",
+    likes: 847, replies: 62, reposts: 91, views: "24K"
+  },
+  {
+    id: 2, level: 1,
+    name: "Thiago Neves", handle: "@thiago_nv", time: "3h",
+    initials: "TN", color: "#10b981",
+    text: "meu grupo de amigos sumiu depois que eu comecei a namorar e agora que terminei ninguém apareceu. boa lição 👍 amizade de verdade é rara mesmo",
+    likes: 2341, replies: 189, reposts: 412, views: "87K"
+  },
+  {
+    id: 3, level: 2,
+    name: "Isabela Mota", handle: "@isamota_", time: "5h",
+    initials: "IM", color: "#f59e0b",
+    text: "reprovei na prova que estudei mais nesse semestre. fiz exercícios, reli o conteúdo, tirei dúvida com o professor. não entendo mais nada. pra que estudar se não adianta nada",
+    likes: 5892, replies: 743, reposts: 1204, views: "231K"
+  },
+  {
+    id: 4, level: 2,
+    name: "Lucas Freire", handle: "@lfreire22", time: "8h",
+    initials: "LF", color: "#ef4444",
+    text: "aquele amigo que some quando você precisa e aparece quando precisa de favor. tipo relógio quebrado, certo duas vezes por dia. cansado de ser o único que faz esforço nas amizades",
+    likes: 3107, replies: 298, reposts: 876, views: "142K"
+  },
+  {
+    id: 5, level: 3,
+    name: "Beatriz Cunha", handle: "@biacunha", time: "2h",
+    initials: "BC", color: "#8b5cf6",
+    text: "uma mulher foi demitida hoje na empresa onde faço estágio. o motivo real? ficou grávida. o motivo oficial? "reestruturação". todo mundo sabe, ninguém faz nada. que país é esse",
+    likes: 18432, replies: 2341, reposts: 6789, views: "812K"
+  },
+  {
+    id: 6, level: 3,
+    name: "Rafael Souza", handle: "@rafaelsouza_r", time: "4h",
+    initials: "RS", color: "#ec4899",
+    text: "minha orientadora disse hoje que meu projeto 'não tem condições de ser defendido esse semestre'. dois anos de trabalho. saí da reunião sem conseguir falar nada. fui chorar no banheiro da faculdade como se tivesse 15 anos",
+    likes: 9214, replies: 1087, reposts: 2341, views: "445K"
+  }
+];
+
+let step = 0, pid = "", answers = [], likedSet = new Set(), repostedSet = new Set();
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById("clockDisplay").textContent =
+    now.getHours().toString().padStart(2,"0") + ":" +
+    now.getMinutes().toString().padStart(2,"0");
+}
+updateClock(); setInterval(updateClock, 15000);
+
+const pidInput = document.getElementById("pidInput");
+const startBtn = document.getElementById("startBtn");
+pidInput.addEventListener("input", () => { startBtn.disabled = pidInput.value.trim().length === 0; });
+pidInput.addEventListener("keydown", e => { if (e.key === "Enter" && !startBtn.disabled) startBtn.click(); });
+startBtn.addEventListener("click", () => {
+  pid = pidInput.value.trim().toUpperCase();
+  document.getElementById("idScreen").style.display = "none";
+  document.getElementById("commentArea").style.display = "block";
+  renderPost(0); updateProgress();
+});
+
+function fmtNum(n) {
+  if (n >= 1000) return (n/1000).toFixed(1).replace(".0","") + "K";
+  return n;
+}
+
+function renderPost(idx) {
+  const p = posts[idx];
+  const lk = likedSet.has(p.id), rp = repostedSet.has(p.id);
+  document.getElementById("replyHandle").textContent = p.handle;
+  document.getElementById("feedArea").innerHTML = `
+    <div class="post-card">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+        <div class="avatar" style="background:${p.color}">${p.initials}</div>
+        <div style="width:2px;flex:1;background:#cfd9de;margin-top:4px;min-height:16px;border-radius:1px"></div>
+      </div>
+      <div class="post-right">
+        <div class="post-header">
+          <span class="post-name">${p.name}</span>
+          <span class="post-handle">${p.handle}</span>
+          <span class="post-dot">·</span>
+          <span class="post-time">${p.time}</span>
+          <button class="post-more">···</button>
+        </div>
+        <p class="post-text">${p.text}</p>
+        <div class="post-actions">
+          <button class="abtn" aria-label="Comentários">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>${fmtNum(p.replies)}</span>
+          </button>
+          <button class="abtn repost ${rp?"reposted":""}" onclick="toggleRepost(${p.id},this)" aria-label="Repostar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span id="rcount${p.id}">${fmtNum(rp?p.reposts+1:p.reposts)}</span>
+          </button>
+          <button class="abtn like ${lk?"liked":""}" onclick="toggleLike(${p.id},this)" aria-label="Curtir">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="${lk?"#f91880":"none"}" stroke="${lk?"#f91880":"currentColor"}" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span id="lcount${p.id}">${fmtNum(lk?p.likes+1:p.likes)}</span>
+          </button>
+          <button class="abtn" aria-label="Visualizações">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>${p.views}</span>
+          </button>
+          <button class="abtn" aria-label="Compartilhar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleLike(id, btn) {
+  const p = posts.find(x=>x.id===id);
+  const count = document.getElementById("lcount"+id);
+  const svg = btn.querySelector("svg");
+  if (likedSet.has(id)) {
+    likedSet.delete(id); btn.classList.remove("liked");
+    svg.setAttribute("fill","none"); svg.setAttribute("stroke","currentColor");
+    count.textContent = fmtNum(p.likes);
+  } else {
+    likedSet.add(id); btn.classList.add("liked");
+    svg.setAttribute("fill","#f91880"); svg.setAttribute("stroke","#f91880");
+    count.textContent = fmtNum(p.likes+1);
+  }
+}
+
+function toggleRepost(id, btn) {
+  const p = posts.find(x=>x.id===id);
+  const count = document.getElementById("rcount"+id);
+  if (repostedSet.has(id)) {
+    repostedSet.delete(id); btn.classList.remove("reposted");
+    count.textContent = fmtNum(p.reposts);
+  } else {
+    repostedSet.add(id); btn.classList.add("reposted");
+    count.textContent = fmtNum(p.reposts+1);
+  }
+}
+
+function updateProgress() {
+  const pct = ((step+1)/posts.length)*100;
+  document.getElementById("pFill").style.width = pct+"%";
+  document.getElementById("sLabel").textContent = "Post "+(step+1)+" de "+posts.length;
+}
+
+const cInput = document.getElementById("cInput");
+const pubBtn = document.getElementById("pubBtn");
+const charArc = document.getElementById("charArc");
+const circumference = 50.27;
+
+function htmlToMarkdown(html) {
+  return html
+    .replace(/<b>(.*?)<\/b>/gi, "**$1**")
+    .replace(/<strong>(.*?)<\/strong>/gi, "**$1**")
+    .replace(/<i>(.*?)<\/i>/gi, "_$1_")
+    .replace(/<em>(.*?)<\/em>/gi, "_$1_")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .trim();
+}
+
+function syncInput() {
+  const text = cInput.innerText.trim();
+  const len = text.length;
+  pubBtn.disabled = len === 0;
+  const pct = Math.min(len / 280, 1);
+  charArc.style.strokeDashoffset = circumference - (pct * circumference);
+  charArc.style.stroke = pct > 0.9 ? "#f4212e" : pct > 0.7 ? "#ffd400" : "#1d9bf0";
+}
+
+cInput.addEventListener("input", syncInput);
+
+cInput.addEventListener("keydown", (e) => {
+  if (cInput.innerText.length >= 280 && e.key !== "Backspace" && e.key !== "Delete" && !e.ctrlKey) {
+    e.preventDefault();
+  }
+});
+
+pubBtn.addEventListener("click", () => {
+  const markdown = htmlToMarkdown(cInput.innerHTML);
+  if (!markdown) return;
+  answers.push(markdown);
+  cInput.innerHTML = "";
+  charArc.style.strokeDashoffset = circumference;
+  pubBtn.disabled = true;
+  likedSet.clear(); repostedSet.clear();
+  step++;
+  if (step < posts.length) { renderPost(step); updateProgress(); }
+  else showResults();
+});
+
+async function sendToSheets(payload) {
+  try {
+    await fetch(SHEETS_URL, { method:"POST", body:JSON.stringify(payload), mode:"no-cors" });
+    return true;
+  } catch(e) { return false; }
+}
+
+async function showResults() {
+  document.getElementById("pFill").style.width = "100%";
+  document.getElementById("sLabel").textContent = "Sessão concluída";
+  document.getElementById("feedArea").innerHTML = "";
+  document.getElementById("commentArea").style.display = "none";
+
+  const rDiv = document.createElement("div");
+  rDiv.className = "results-screen";
+  let html = `<div class="rt">Sessão concluída</div><div class="rsub">Participante: ${pid}</div>`;
+  answers.forEach((ans,i) => {
+    const p = posts[i];
+    html += `<div class="ritem">
+      <div class="rlabel">Post ${i+1} · ${p.handle}</div>
+      <div class="rpost">${p.text.substring(0,80)}...</div>
+      <div class="rreply">${ans}</div>
+    </div>`;
+  });
+  html += `<div class="smsg s-sending" id="sendStatus">Enviando dados...</div>`;
+  html += `<button class="reset-btn" onclick="resetApp()">Próximo participante</button>`;
+  rDiv.innerHTML = html;
+  document.getElementById("phoneInner").appendChild(rDiv);
+
+  const ok = await sendToSheets({id:pid,r1:answers[0],r2:answers[1],r3:answers[2],r4:answers[3],r5:answers[4],r6:answers[5]});
+  const st = document.getElementById("sendStatus");
+  st.className = ok?"smsg s-ok":"smsg s-err";
+  st.textContent = ok?"✓ Dados salvos na planilha":"⚠ Erro no envio — verifique a conexão";
+}
+
+function applyFmt(type) {
+  const input = document.getElementById("cInput");
+  input.focus();
+  if (type === "bold") document.execCommand("bold", false, null);
+  else document.execCommand("italic", false, null);
+  syncInput();
+}
+
+function resetApp() {
+  step=0; pid=""; answers=[]; likedSet.clear(); repostedSet.clear();
+  const rs = document.querySelector(".results-screen");
+  if (rs) rs.remove();
+  document.getElementById("feedArea").innerHTML="";
+  document.getElementById("commentArea").style.display="none";
+  document.getElementById("pFill").style.width="0%";
+  document.getElementById("sLabel").textContent="Carregando...";
+  cInput.innerHTML="";
+  charArc.style.strokeDashoffset=circumference;
+  pubBtn.disabled=true;
+  document.getElementById("idScreen").style.display="flex";
+  document.getElementById("pidInput").value="";
+  document.getElementById("startBtn").disabled=true;
+}
+</script>
+</body>
+</html>
